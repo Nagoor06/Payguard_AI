@@ -50,6 +50,17 @@ public class TriageRepository {
         return new CreateOutcome(findById(rows.getFirst().id()).orElseThrow(), false);
     }
 
+    /** Bounded recent-case listing; deliberately excludes prompts and LLM explanations. */
+    public List<TriageRecord> recent(int limit) {
+        return jdbc.query("""
+            SELECT id, payment_state, gateway_code, retry_count, category, retry_candidate,
+                   human_review_required, next_step, review_status, review_updated_at, created_at
+            FROM triage_cases
+            ORDER BY created_at DESC, id DESC
+            LIMIT ?
+            """, (RowMapper<TriageRecord>) this::map, limit);
+    }
+
     public Optional<TriageRecord> findById(UUID id) {
         return jdbc.query("""
             SELECT id, payment_state, gateway_code, retry_count, category, retry_candidate,
