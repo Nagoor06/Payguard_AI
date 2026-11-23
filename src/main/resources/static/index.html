@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>PayGuard AI | Operations Console</title>
+  <meta name="description" content="Explore synthetic payment incidents, triage decisions, review queues and audit events.">
+  <link rel="stylesheet" href="/dashboard/styles.css">
+  <script src="/dashboard/app.js" defer></script>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" aria-label="Primary navigation">
+    <a class="brand" href="/" aria-label="PayGuard AI home">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none"><path d="M18 2.5 31 8v9.7c0 9.2-5.7 14.7-13 17.2C10.7 32.4 5 26.9 5 17.7V8L18 2.5Z" fill="#2CCFA1" fill-opacity=".14" stroke="#3CE5B4" stroke-width="1.7"/><path d="m11.4 18.1 4.4 4.4 8.8-9.1" stroke="#70F7CD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span><strong>payguard<span class="brand-accent">.</span></strong><small>OPERATIONS CONSOLE</small></span>
+    </a>
+    <div class="side-heading">WORKSPACE</div>
+    <nav class="nav-stack">
+      <button class="nav-button active" type="button" data-view="overview" aria-current="page"><span class="nav-glyph">◫</span> Overview</button>
+      <button class="nav-button" type="button" data-view="triage"><span class="nav-glyph">✳</span> New incident</button>
+      <button class="nav-button" type="button" data-view="reviews"><span class="nav-glyph">◎</span> Review queue <span class="nav-count" id="nav-pending">0</span></button>
+      <button class="nav-button" type="button" data-view="monitor"><span class="nav-glyph">▥</span> Monitoring</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="demo-tag"><span class="dot"></span> SYNTHETIC DATA ONLY</div>
+      <p>No real charges, retries, transfers or refunds are performed.</p>
+      <a href="https://github.com/Nagoor06/Payguard_AI" target="_blank" rel="noopener noreferrer" class="repo-link">View source repository ↗</a>
+    </div>
+  </aside>
+
+  <div class="main-column">
+    <header class="topbar">
+      <div class="breadcrumb"><span>PayGuard AI</span><span class="crumb-sep">/</span><strong id="breadcrumb-current">Overview</strong></div>
+      <div class="top-actions"><span class="health-chip" id="service-health"><span class="health-dot"></span> Checking service</span><button class="top-clear" type="button" id="clear-session">Clear session</button></div>
+    </header>
+
+    <main class="content">
+      <section class="connect-card" aria-labelledby="access-title">
+        <div class="connect-copy"><span class="eyebrow">LOCAL ACCESS</span><h2 id="access-title">Connect to the API</h2><p>Enter the keys from your local <code>.env</code>. Keys stay in this tab and are never saved to browser storage.</p></div>
+        <div class="connect-fields"><label class="field"><span>API key <small>Required</small></span><input id="api-key" type="password" autocomplete="off" placeholder="Paste APP_API_KEY" aria-label="API key"></label><label class="field"><span>Reviewer key <small>Optional until review</small></span><input id="reviewer-key" type="password" autocomplete="off" placeholder="Paste REVIEWER_API_KEY" aria-label="Reviewer key"></label><button class="button primary connect-button" id="connect-button" type="button">Connect <span aria-hidden="true">↗</span></button></div>
+        <div class="connect-state" id="connection-state" role="status">Enter your API key to load incidents.</div>
+      </section>
+
+      <section class="view active" id="view-overview" aria-labelledby="overview-title">
+        <div class="page-heading"><div><div class="eyebrow">OPERATIONS OVERVIEW</div><h1 id="overview-title">Every incident, one clear decision.</h1><p>A focused view of your latest synthetic payment investigations.</p></div><button id="refresh-cases" type="button" class="button outline">↻ Refresh data</button></div>
+        <div class="stats">
+          <article class="stat-card"><span class="stat-label">Recent cases <span>◈</span></span><strong id="stat-cases">—</strong><small>Latest 50 cases, not lifetime total</small></article>
+          <article class="stat-card"><span class="stat-label">Pending review <span>◎</span></span><strong class="warm" id="stat-pending">—</strong><small>Awaiting operator decision</small></article>
+          <article class="stat-card"><span class="stat-label">Retry candidates <span>↺</span></span><strong class="mint" id="stat-retry">—</strong><small>Reconciliation still required</small></article>
+          <article class="stat-card"><span class="stat-label">Reviewed cases <span>✓</span></span><strong id="stat-reviewed">—</strong><small>Acknowledged or escalated</small></article>
+        </div>
+        <section class="panel">
+          <div class="panel-top"><div><h2>Recent incidents</h2><p>Live records from PostgreSQL; click any row for details.</p></div><button type="button" class="button small secondary" data-view="triage">+ Create incident</button></div>
+          <div class="table-tools"><label class="search-box"><span aria-hidden="true">⌕</span><input type="search" id="case-search" placeholder="Filter by case ID, state or gateway…" aria-label="Filter recent incidents"></label><span id="table-count" class="small-muted"></span></div>
+          <div class="table-scroll"><table><thead><tr><th>CASE ID</th><th>GATEWAY</th><th>DECISION</th><th>REVIEW STATUS</th><th>CREATED</th><th></th></tr></thead><tbody id="cases-body"><tr><td colspan="6" class="empty-cell">Connect to see your incidents.</td></tr></tbody></table></div>
+        </section>
+      </section>
+
+      <section class="view" id="view-triage" aria-labelledby="triage-title" hidden>
+        <div class="page-heading"><div><div class="eyebrow">CASE INTAKE</div><h1 id="triage-title">Investigate a payment signal.</h1><p>Generate a policy decision with optional AI explanation. This never sends money.</p></div></div>
+        <div class="form-grid">
+          <section class="panel form-panel">
+            <div class="panel-top"><div><h2>Incident details</h2><p>Use made-up test data only—no card or customer identifiers.</p></div><span class="pill neutral">NEW</span></div>
+            <form id="triage-form">
+              <div class="two-fields">
+                <label class="field"><span>Payment state</span><select id="payment-state" required><option value="FAILED">Failed</option><option value="PENDING">Pending</option><option value="SETTLED">Settled</option></select></label>
+                <label class="field"><span>Gateway response</span><select id="gateway-code" required><option value="TIMEOUT">Timeout</option><option value="RATE_LIMITED">Rate limited</option><option value="DECLINED">Declined</option><option value="FRAUD_REVIEW">Fraud review</option><option value="UNKNOWN">Unknown</option><option value="NONE">None</option></select></label>
+              </div>
+              <label class="field"><span>Previous retry attempts</span><input id="retry-count" type="number" min="0" max="10" step="1" value="0" required></label>
+              <label class="field"><span>Investigation question <small>Max 400 characters</small></span><textarea id="question" required maxlength="400" rows="4" placeholder="e.g. Why did this synthetic payment timeout?">Why did this synthetic payment fail?</textarea></label>
+              <div class="form-actions"><button class="button primary" id="submit-triage" type="submit">Analyze incident <span aria-hidden="true">→</span></button><button class="button outline" id="replay-triage" type="button" disabled>Replay last request</button></div>
+            </form>
+          </section>
+          <section class="panel insight-panel">
+            <div class="panel-top"><div><h2>Decision output</h2><p>Rules decide. The model, if available, explains.</p></div></div>
+            <div class="decision-placeholder" id="decision-output"><div class="placeholder-icon">✦</div><h3>Ready for analysis</h3><p>Create an incident to see its category, next step, and explanation source.</p></div>
+            <div class="disclaimer">Decision support only. Never execute a payment action based on this demo.</div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="view-reviews" aria-labelledby="reviews-title" hidden>
+        <div class="page-heading"><div><div class="eyebrow">HUMAN OVERSIGHT</div><h1 id="reviews-title">Decisions that need a person.</h1><p>Cases awaiting acknowledgment or escalation, with an immutable audit record.</p></div><button class="button outline" id="refresh-reviews" type="button">↻ Refresh queue</button></div>
+        <section class="panel"><div class="panel-top"><div><h2>Pending cases</h2><p>Open a case to inspect its policy before choosing an action.</p></div><span class="pill amber" id="pending-badge">0 pending</span></div><div id="review-list" class="review-list"><div class="empty-state">Connect to load the review queue.</div></div></section>
+      </section>
+
+      <section class="view" id="view-monitor" aria-labelledby="monitor-title" hidden>
+        <div class="page-heading"><div><div class="eyebrow">SYSTEM HEALTH</div><h1 id="monitor-title">Know what's happening.</h1><p>Inspect service health and application-level telemetry without using the terminal.</p></div><button class="button outline" id="refresh-metrics" type="button">↻ Refresh metrics</button></div>
+        <div class="monitor-grid"><section class="panel"><div class="panel-top"><div><h2>Service status</h2><p>Spring Boot Actuator health check.</p></div></div><div class="monitor-status" id="health-details">Checking…</div></section><section class="panel"><div class="panel-top"><div><h2>AI integration</h2><p>Mode is determined by the explanation source on each request.</p></div></div><div class="monitor-status"><strong>Demo mode supported</strong><p>AWS Bedrock is optional. A policy fallback doesn't mean a transaction was retried.</p></div></section></div>
+        <section class="panel"><div class="panel-top"><div><h2>Prometheus metrics</h2><p>Authenticated application counters (latest snapshot).</p></div><span class="pill neutral">READ ONLY</span></div><pre id="metrics-output" class="metrics-output">Connect to view metrics.</pre></section>
+      </section>
+    </main>
+    <footer class="footer">PayGuard AI · Local demonstration console · Java 21 / Spring Boot / PostgreSQL</footer>
+  </div>
+</div>
+
+<div class="overlay" id="detail-overlay" hidden></div>
+<aside class="detail-drawer" id="detail-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" hidden>
+  <div class="drawer-header"><div><div class="eyebrow">CASE INSPECTION</div><h2 id="drawer-title">Incident details</h2></div><button type="button" id="close-drawer" class="icon-button" aria-label="Close details">✕</button></div>
+  <div class="drawer-content">
+    <div id="drawer-case" class="drawer-case"></div>
+    <div id="drawer-review" class="drawer-review"></div>
+    <div class="drawer-audit"><div class="drawer-section-heading"><h3>Audit events</h3><button id="load-events" type="button" class="text-button">Load secure audit ↗</button></div><div id="audit-events" class="audit-events"><p class="small-muted">Reviewer credential required to load the audit trail.</p></div></div>
+  </div>
+</aside>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

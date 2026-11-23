@@ -9,6 +9,26 @@ PayGuard AI is a Java Spring Boot backend for investigating **synthetic payment 
 > [!IMPORTANT]
 > PayGuard is a software engineering demonstration, **not a payment processor**. It does not charge cards, retry transactions, issue refunds, transfer money, or connect to a real payment provider. Use **synthetic data only**. The current security controls are not a substitute for PCI DSS compliance or production financial-system security.
 
+## Web operations console
+
+PayGuard includes a responsive **browser UI served by the same Spring Boot application**. There is no separate frontend development server and no npm installation required.
+
+1. Create a local .env file from .env.example (if you have not already), then set APP_API_KEY, REVIEWER_API_KEY and DB_PASSWORD. Never commit .env.
+2. Keep AI_PROVIDER=demo until you have confirmed AWS Bedrock access.
+3. Start Docker Desktop, then run:
+
+```powershell
+docker compose up --build -d
+```
+
+4. Open **http://localhost:8080/** in your browser.
+5. Paste your APP_API_KEY into the access panel and click **Connect**. Add REVIEWER_API_KEY only when you need review or audit actions.
+6. Use **New incident** to submit a synthetic case, **Overview** to search the latest 50 cases, **Review queue** to acknowledge or escalate flagged incidents, and **Monitoring** for health and authenticated metrics.
+
+The console uses the existing REST API, including a new authenticated GET /api/v1/triage?limit=50 listing endpoint. Values in the two credential fields are held in the current browser tab only; they are **not** saved to localStorage, cookies, or the server.
+
+> **Local-only security model:** This UI is intended for localhost demonstration. It uses shared API keys instead of individual users, roles, sessions or CSRF-protected authentication. Do not expose the service to the public internet without implementing production-grade authentication, authorization, transport security and rate limiting. All cases must use synthetic data.
+
 ## Key features
 
 | Area | Implementation |
