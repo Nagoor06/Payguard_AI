@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#0b1220" />
+  <meta name="description" content="Explore PayGuard AI: an interactive demonstration of deterministic payment incident triage, human reviews, and reliability engineering." />
+  <title>PayGuard AI — Payment Reliability Console</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="site">
+    <header class="header">
+      <a class="brand" href="#home" aria-label="PayGuard AI home"><span class="brandicon"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="m18 3 12.5 5.5v9.6c0 9.2-5.4 13.8-12.5 16.1C10.9 31.9 5.5 27.3 5.5 18.1V8.5L18 3Z" stroke="currentColor" stroke-width="1.6" fill="#1b5b52"/><path d="m12 18.4 4 4.2 8.4-9.1" fill="none" stroke="#9dfadb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>payguard<span class="accent">.</span><small>RELIABILITY ENGINE</small></span></a>
+      <nav aria-label="Site navigation"><a href="#demo">Interactive demo</a><a href="#architecture">Architecture</a><a class="repo" href="https://github.com/Nagoor06/Payguard_AI" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></nav>
+    </header>
+    <main>
+      <section class="hero" id="home">
+        <div class="hero-text">
+          <div class="overline"><span class="pulse"></span> PAYMENT OPERATIONS · ENGINEERING DEMO</div>
+          <h1>When payments fail, <em>clarity matters.</em></h1>
+          <p class="intro">A deterministic triage engine for synthetic payment incidents—built to explain failures, prevent duplicate processing, and route risk signals to human review.</p>
+          <div class="hero-cta"><a href="#demo" class="button primary">Try the interactive demo <span aria-hidden="true">→</span></a><a href="https://github.com/Nagoor06/Payguard_AI" class="button ghost" target="_blank" rel="noopener noreferrer">Explore the source <span aria-hidden="true">↗</span></a></div>
+          <p class="hero-note"><span class="info-dot">i</span> Public preview runs decision rules in your browser. No live API, database writes, or real payment operations.</p>
+        </div>
+        <div class="hero-visual" aria-label="Illustration of a payment incident routing through a policy engine to resolution">
+          <div class="visual-head"><span class="terminal-dots"><i></i><i></i><i></i></span><span>payment-triage.flow</span><span class="head-status">POLICY ACTIVE</span></div>
+          <div class="flow-step"><span class="step-number">01</span><div><small>INPUT SIGNAL</small><strong>Gateway timeout detected</strong><span>State: FAILED · Retry count: 0</span></div><span class="signal amber">SIGNAL</span></div>
+          <div class="flow-arrow">↓ <span>validated and classified</span></div>
+          <div class="flow-step selected"><span class="step-number">02</span><div><small>DETERMINISTIC RULES</small><strong>Reconciliation required</strong><span>Idempotency verification before action</span></div><span class="signal teal">SAFE</span></div>
+          <div class="flow-arrow">↓ <span>decision returned</span></div>
+          <div class="flow-step"><span class="step-number">03</span><div><small>OPERATOR GUIDANCE</small><strong>Retry candidate, not auto-retry</strong><span>Human-readable next step</span></div><span class="signal blue">ADVICE</span></div>
+          <div class="visual-foot"><span>●</span> Rule engine decides · AI only explains</div>
+        </div>
+      </section>
+
+      <section class="features" aria-label="Key features">
+        <div class="feature"><div class="feature-icon">⌘</div><h3>Policy-first decisions</h3><p>Reproducible outcomes independent of model availability.</p></div>
+        <div class="feature"><div class="feature-icon">↺</div><h3>Idempotent APIs</h3><p>PostgreSQL uniqueness and conflict detection prevent duplicate case creation.</p></div>
+        <div class="feature"><div class="feature-icon">◎</div><h3>Human oversight</h3><p>Fraud-review signals require explicit review and a recorded audit trail.</p></div>
+        <div class="feature"><div class="feature-icon">▥</div><h3>Observability</h3><p>Health checks, request correlation and Prometheus metrics.</p></div>
+      </section>
+
+      <section class="demo-section" id="demo">
+        <div class="section-top"><div><div class="eyebrow">INTERACTIVE SANDBOX</div><h2>Explore the decision engine.</h2><p>Select a realistic synthetic incident and inspect its policy result.</p></div><span class="demo-badge"><span class="pulse"></span> BROWSER-ONLY DEMO</span></div>
+        <div class="demo-grid">
+          <div class="panel inputs"><div class="panel-heading"><div><span class="eyebrow">01 / SCENARIO</span><h3>Incident parameters</h3></div><span class="panel-icon">↗</span></div>
+            <div class="scenario-buttons" role="group" aria-label="Example scenarios">
+              <button type="button" class="scenario active" data-scenario="timeout">Gateway timeout</button>
+              <button type="button" class="scenario" data-scenario="fraud">Fraud flag</button>
+              <button type="button" class="scenario" data-scenario="pending">Pending</button>
+              <button type="button" class="scenario" data-scenario="declined">Declined</button>
+              <button type="button" class="scenario" data-scenario="settled">Settled</button>
+              <button type="button" class="scenario" data-scenario="exhausted">Retry limit</button>
+            </div>
+            <form id="scenario-form">
+              <div class="fields">
+                <label>Payment state<select id="payment-state"><option value="FAILED">FAILED</option><option value="PENDING">PENDING</option><option value="SETTLED">SETTLED</option></select></label>
+                <label>Gateway code<select id="gateway-code"><option>TIMEOUT</option><option>RATE_LIMITED</option><option>DECLINED</option><option>FRAUD_REVIEW</option><option>UNKNOWN</option><option>NONE</option></select></label>
+              </div>
+              <label>Previous retry attempts <span class="hint">0–10</span><input id="retry-count" type="number" min="0" max="10" step="1" value="0" required /></label>
+              <label>Investigation note <span class="hint">Synthetic only</span><textarea id="investigation" rows="3" maxlength="400" placeholder="Reason for investigating this simulated incident">A synthetic payment failed due to a timeout.</textarea></label>
+              <button type="submit" class="button primary wide">Run policy evaluation <span aria-hidden="true">→</span></button>
+            </form>
+            <p class="privacy-note">✳ No form data leaves your device. Evaluations are not saved.</p>
+          </div>
+
+          <div class="panel output"><div class="panel-heading"><div><span class="eyebrow">02 / DECISION</span><h3>Policy evaluation</h3></div><span class="live-indicator">● READY</span></div>
+            <div class="result-main">
+              <div class="decision-status"><span class="decision-chip" id="result-chip">RETRY CANDIDATE</span><span id="result-source">LOCAL RULES</span></div>
+              <h3 id="result-headline">Reconcile before retrying.</h3>
+              <p id="result-description">A timeout can be a retry candidate, but only after confirming its status with the payment provider and checking idempotency.</p>
+              <div class="decision-divider"></div>
+              <div class="decision-flags"><div><small>Retry candidate</small><strong id="retry-flag">YES</strong></div><div><small>Human review required</small><strong id="review-flag">NO</strong></div></div>
+              <div class="next-step"><small>RECOMMENDED NEXT STEP</small><p id="next-step">Potential retry candidate ONLY after provider reconciliation and idempotency verification.</p></div>
+              <div class="output-foot"><span id="evaluated-at">Example result</span><button type="button" id="copy-result" class="text-link">Copy decision ↗</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="safety-line"><strong>Safety boundary.</strong> This demonstration never authorizes payment retries, charges, settlements or refunds. The deployed preview mirrors the backend's deterministic decision logic; it does not run a remote Spring Boot service.</div>
+      </section>
+
+      <section class="architecture-section" id="architecture">
+        <div class="eyebrow">ENGINEERING OVERVIEW</div><h2>Built for predictable behavior.</h2><p class="arch-intro">The repository contains a tested Java 21 backend and an authenticated local operations dashboard. Live public hosting of that backend requires a dedicated database and appropriate access controls.</p>
+        <div class="arch-path"><div class="arch-node"><span>01</span><strong>Spring Boot REST API</strong><small>Validation · API keys · Idempotency</small></div><span class="arch-arrow">→</span><div class="arch-node"><span>02</span><strong>Deterministic policy</strong><small>Fraud flags · State reconciliation</small></div><span class="arch-arrow">→</span><div class="arch-node"><span>03</span><strong>PostgreSQL + Flyway</strong><small>Case records · Audit trail</small></div><span class="arch-arrow">→</span><div class="arch-node"><span>04</span><strong>Optional AWS Bedrock</strong><small>Explanations only · Safe fallback</small></div></div>
+        <div class="tech"><span>JAVA 21</span><span>SPRING BOOT</span><span>POSTGRESQL</span><span>FLYWAY</span><span>DOCKER</span><span>JUNIT</span><span>TESTCONTAINERS</span><span>AWS SDK</span></div>
+      </section>
+
+      <section class="foot-cta"><div><span class="eyebrow">SOURCE & VERIFICATION</span><h2>Inspect the implementation.</h2><p>Explore the backend, review lifecycle, PostgreSQL migrations, integration tests, and CI workflow in GitHub.</p></div><a class="button primary" href="https://github.com/Nagoor06/Payguard_AI" target="_blank" rel="noopener noreferrer">Open GitHub repository ↗</a></section>
+    </main>
+    <footer class="footer"><span><strong>payguard<span class="accent">.</span></strong> · Payment reliability engineering</span><span>Synthetic data only · Public interactive preview</span></footer>
+  </div>
+  <div id="announcement" class="announcement" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
