@@ -1,0 +1,19 @@
+# Optional AWS Bedrock override for the PayGuard AI Docker Compose project.
+# On Windows PowerShell, first run:
+#   $env:AWS_DIR = (Join-Path $env:USERPROFILE '.aws')
+#   docker compose -f compose.yaml -f compose.aws.yaml up --build -d
+# Requires: aws configure --profile payguard-dev
+services:
+  api:
+    environment:
+      AI_PROVIDER: bedrock
+      AWS_REGION: us-east-1
+      BEDROCK_MODEL_ID: amazon.nova-lite-v1:0
+      AWS_PROFILE: payguard-dev
+      AWS_SHARED_CREDENTIALS_FILE: /run/aws/credentials
+      AWS_CONFIG_FILE: /run/aws/config
+    volumes:
+      - type: bind
+        source: ${AWS_DIR:?Set AWS_DIR to your local .aws folder}
+        target: /run/aws
+        read_only: true

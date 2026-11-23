@@ -1,0 +1,164 @@
+openapi: 3.0.3
+info:
+  title: PayGuard AI Payment Incident Triage API
+  version: 0.3.0
+  description: >
+    Decision support for synthetic incidents. Does not process payments, and the
+    AWS Bedrock adapter only explains deterministic policy decisions.
+servers:
+  - url: http://localhost:8080
+security:
+  - apiKey: []
+paths:
+  /api/v1/triage:
+    post:
+      summary: Classify a synthetic payment incident (retry-safe)
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema: {type: string, minLength: 12, maxLength: 128}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/TriageInput'}
+      responses:
+        '201':
+          description: Case created
+          headers:
+            X-Idempotent-Replay:
+              schema: {type: string, enum: ['false']}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TriageResponse'}
+        '200':
+          description: Existing case returned; model is not reinvoked
+          headers:
+            X-Idempotent-Replay:
+              schema: {type: string, enum: ['true']}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TriageResponse'}
+        '400': {description: Missing or malformed request}
+        '401': {description: Invalid or missing API key}
+        '409': {description: Idempotency key reused with a different request}
+        '422': {description: Sensitive-input filter rejection}
+  /api/v1/triage/{id}:
+    parameters:
+      - $ref: '#/components/parameters/caseId'
+    get:
+      summary: Retrieve saved policy metadata and review status
+      responses:
+        '200':
+          description: Stored case
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/StoredCase'}
+        '404': {description: Case not found}
+  /api/v1/triage/{id}/review:
+    parameters:
+      - $ref: '#/components/parameters/caseId'
+    post:
+      summary: Complete a pending human review exactly once
+      security:
+        - apiKey: []
+          reviewerKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ReviewInput'}
+      responses:
+        '200':
+          description: Updated case
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/StoredCase'}
+        '403': {description: Missing reviewer credential}
+        '404': {description: Case not found}
+        '409': {description: Case no longer pending review}
+  /api/v1/triage/{id}/events:
+    parameters:
+      - $ref: '#/components/parameters/caseId'
+    get:
+      summary: Retrieve append-only case audit events
+      security:
+        - apiKey: []
+          reviewerKey: []
+      responses:
+        '403': {description: Missing reviewer credential}
+        '200':
+          description: Audit event list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/AuditEvent'}
+        '404': {description: Case not found}
+components:
+  securitySchemes:
+    apiKey: {type: apiKey, in: header, name: X-API-Key}
+    reviewerKey: {type: apiKey, in: header, name: X-Reviewer-Key}
+  parameters:
+    caseId:
+      in: path
+      name: id
+      required: true
+      schema: {type: string, format: uuid}
+  schemas:
+    TriageInput:
+      type: object
+      required: [paymentState, gatewayCode, retryCount, question]
+      properties:
+        paymentState: {type: string, enum: [FAILED, PENDING, SETTLED]}
+        gatewayCode: {type: string, enum: [TIMEOUT, RATE_LIMITED, DECLINED, FRAUD_REVIEW, UNKNOWN, NONE]}
+        retryCount: {type: integer, minimum: 0, maximum: 10}
+        question: {type: string, maxLength: 400, description: Synthetic information only}
+    Policy:
+      type: object
+      properties:
+        category: {type: string, enum: [RESOLVED, WAIT_AND_RECHECK, RETRY_CANDIDATE, DO_NOT_RETRY, HUMAN_REVIEW]}
+        retryCandidate: {type: boolean}
+        humanReviewRequired: {type: boolean}
+        nextStep: {type: string}
+    TriageResponse:
+      type: object
+      properties:
+        caseId: {type: string, format: uuid}
+        policy: {$ref: '#/components/schemas/Policy'}
+        reviewStatus: {$ref: '#/components/schemas/ReviewStatus'}
+        explanation: {type: string}
+        explanationSource: {type: string, enum: [DEMO_RULES, AWS_BEDROCK, POLICY_FALLBACK, REPLAY_POLICY]}
+        disclaimer: {type: string}
+    ReviewStatus:
+      type: string
+      enum: [NOT_REQUIRED, PENDING_REVIEW, ACKNOWLEDGED, ESCALATED]
+    ReviewInput:
+      type: object
+      required: [action, reviewerRef]
+      properties:
+        action: {type: string, enum: [ACKNOWLEDGED, ESCALATED]}
+        reviewerRef: {type: string, minLength: 3, maxLength: 32, pattern: '^[A-Za-z0-9_-]+$'}
+    StoredCase:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        paymentState: {type: string}
+        gatewayCode: {type: string}
+        retryCount: {type: integer}
+        category: {type: string}
+        retryCandidate: {type: boolean}
+        humanReviewRequired: {type: boolean}
+        nextStep: {type: string}
+        reviewStatus: {$ref: '#/components/schemas/ReviewStatus'}
+        reviewUpdatedAt: {type: string, format: date-time, nullable: true}
+        createdAt: {type: string, format: date-time}
+    AuditEvent:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        caseId: {type: string, format: uuid}
+        eventType: {type: string, enum: [CASE_CREATED, REVIEW_ACKNOWLEDGED, REVIEW_ESCALATED]}
+        reviewerRef: {type: string, nullable: true}
+        createdAt: {type: string, format: date-time}

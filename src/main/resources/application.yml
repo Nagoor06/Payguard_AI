@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: payguard-ai
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:payguard}
+    username: ${DB_USER:payguard}
+    password: ${DB_PASSWORD:local-dev-only}
+  flyway:
+    enabled: true
+server:
+  port: ${PORT:8080}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+app:
+  security:
+    api-key: ${APP_API_KEY:}
+    reviewer-key: ${REVIEWER_API_KEY:}
+  ai:
+    provider: ${AI_PROVIDER:demo}
+    region: ${AWS_REGION:us-east-1}
+    model-id: ${BEDROCK_MODEL_ID:amazon.nova-lite-v1:0}
+
+logging:
+  pattern:
+    level: "%5p [requestId:%X{requestId:-none}]"
