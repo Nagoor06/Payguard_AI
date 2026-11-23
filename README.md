@@ -9,6 +9,14 @@ PayGuard AI is a Java Spring Boot backend for investigating **synthetic payment 
 > [!IMPORTANT]
 > PayGuard is a software engineering demonstration, **not a payment processor**. It does not charge cards, retry transactions, issue refunds, transfer money, or connect to a real payment provider. Use **synthetic data only**. The current security controls are not a substitute for PCI DSS compliance or production financial-system security.
 
+## Live public preview
+
+**[Try the interactive PayGuard AI showcase](https://payguard-ai-showcase.onrender.com/)**
+
+This free, public **browser-only demo** lets visitors explore synthetic payment timeout, fraud-review, pending, declined, settled, and retry-limit scenarios. It faithfully mirrors the Java policy rules but **does not call the backend, persist data, or use AWS Bedrock**. It requires no account, API key, or payment information.
+
+The full Spring Boot service (PostgreSQL persistence, idempotency, reviewer operations, audit history and metrics) is runnable locally using Docker Compose as described below. The public preview is intentionally separated from the authenticated operational API; **do not describe it as a hosted full-stack backend or production payment system**.
+
 ## Web operations console
 
 PayGuard includes a responsive **browser UI served by the same Spring Boot application**. There is no separate frontend development server and no npm installation required.
